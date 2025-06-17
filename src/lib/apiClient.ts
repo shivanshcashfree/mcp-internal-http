@@ -5,7 +5,6 @@
  * @param baseUrl The base URL of the external API (e.g., "https://merchant.cashfree.com").
  * @param endpoint The specific path for the external API (e.g., "/api/path").
  * @param payload The JSON payload to send in the request body.
- * @param authorizationToken The Bearer token for authentication.
  * @param method The HTTP method to use for the request (default is "POST").
  * @returns The JSON response from the API, or null if an error occurs.
  */
@@ -13,8 +12,6 @@ export async function makeApiCall(
   baseUrl: string,
   endpoint: string,
   payload: Record<string, any>,
-  authorizationToken: string,
-
   method: "POST" | "GET" = "POST", // Add method param, default POST
 ): Promise<any | null> {
   let fullUrl = `${baseUrl}${endpoint}`;
@@ -22,7 +19,6 @@ export async function makeApiCall(
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization: authorizationToken,
     },
   };
   if (method === "GET") {
@@ -38,9 +34,6 @@ export async function makeApiCall(
   console.error(`[API Client] Method: ${method}`);
   console.error(`[API Client] Headers:`);
   console.error(`    Content-Type: application/json`);
-  console.error(
-    `    Authorization: ${authorizationToken.substring(0, 10)}...${authorizationToken.substring(authorizationToken.length - 10)}`,
-  );
   if (method !== "GET") {
     console.error(`[API Client] Request Body:\n${fetchOptions.body}`);
   }

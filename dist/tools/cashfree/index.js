@@ -1,6 +1,8 @@
 import getInternalAnalytics from "./getInternalAnalytics.js";
+import getMerchantByName from "./getMerchantByName.js";
 export const cashfreeApiDefinitions = [
-    getInternalAnalytics
+    getMerchantByName,
+    getInternalAnalytics,
 ];
 export default cashfreeApiDefinitions;
-export { getInternalAnalytics, };
+export { getInternalAnalytics, getMerchantByName, };
