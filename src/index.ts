@@ -7,6 +7,7 @@ import { createToolHandler } from "./tools/toolUtils.js";
 import fs from "fs";
 import path from "path";
 import { zodToJsonSchema } from "zod-to-json-schema"; // Import zodToJsonSchema
+import elasticsearchToolDefinitions from "./tools/elastic-search/index.js";
 
 console.log("DEBUG: Content of cashfreeApiDefinitions:", JSON.stringify(cashfreeApiDefinitions, null, 2));
 
@@ -32,6 +33,14 @@ async function startApplication() {
 
     console.log("Registering tools...");
     cashfreeApiDefinitions.forEach((tool) => {
+      server.tool(
+        tool.name,
+        tool.description,
+        tool.inputSchema.shape,
+        createToolHandler(tool),
+      );
+    });
+    elasticsearchToolDefinitions.forEach((tool) => {
       server.tool(
         tool.name,
         tool.description,
@@ -115,6 +124,7 @@ async function startApplication() {
       console.log(`🔑 Ensure 'Authorization: Bearer <your_token>' header is included in requests if authentication is needed.`);
       console.log("🛠 Registered Tools:");
       cashfreeApiDefinitions.forEach((t) => console.log(` - ${t.name}`));
+      elasticsearchToolDefinitions.forEach((t) => console.error(` - ${t.name}`));
       console.log("📚 Registered Resources:");
       console.log(" - docs://getInternalAnalytics");
     }).on('error', (err: any) => {

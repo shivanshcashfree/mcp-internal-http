@@ -1,12 +1,34 @@
 // src/lib/apiClient.ts
 /**
- * Makes an authenticated POST request to a given API endpoint.
- * @param baseUrl The base URL of the external API (e.g., "https://merchant.cashfree.com").
- * @param endpoint The specific path for the external API (e.g., "/api/path").
+ * Makes an API call with retry logic for tools that return empty data when DB queries are still processing.
+ * @param baseUrl The base URL of the external API.
+ * @param endpoint The specific path for the external API.
  * @param payload The JSON payload to send in the request body.
- * @param method The HTTP method to use for the request (default is "POST").
+ * @param method The HTTP method to use for the request.
+ * @param maxRetries Maximum number of retries (default 3).
+ * @param backoffSeconds Seconds to wait between retries (default 5).
  * @returns The JSON response from the API, or null if an error occurs.
  */
+export async function makeApiCallWithRetry(baseUrl, endpoint, payload, method = "POST", maxRetries = 3, backoffSeconds = 5) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const response = await makeApiCall(baseUrl, endpoint, payload, method);
+        if (response === null) {
+            return null; // API call failed completely
+        }
+        // Check if this is an empty data response that might need retry
+        const isEmptyDataResponse = (response.status === true && Array.isArray(response.data) && response.data.length === 0) ||
+            (response.success === true && Array.isArray(response.message) && response.message.length === 0);
+        // If it's not an empty data response, or we're on the last attempt, return the response
+        if (!isEmptyDataResponse || attempt === maxRetries) {
+            return response;
+        }
+        // Log retry attempt
+        console.error(`[API Client] Empty data response on attempt ${attempt}/${maxRetries}. Retrying in ${backoffSeconds} seconds...`);
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, backoffSeconds * 1000));
+    }
+    return null;
+}
 export async function makeApiCall(baseUrl, endpoint, payload, method = "POST") {
     let fullUrl = `${baseUrl}${endpoint}`;
     let fetchOptions = {
